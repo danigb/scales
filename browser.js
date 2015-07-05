@@ -46,7 +46,7 @@ App.prototype.getResults = function () {
   return this.scales.search(this.state.pattern)
 }
 
-},{"./render.js":3,"./router.js":4,"./scales.js":5,"riot":17}],2:[function(require,module,exports){
+},{"./render.js":3,"./router.js":4,"./scales.js":5,"riot":15}],2:[function(require,module,exports){
 var riot = require('riot')
 var App = require('./app.js')
 
@@ -64,12 +64,16 @@ var app = new App({
 
 riot.mount(browser, { app: app })
 
+var route = window.location.hash || '2773/major'
+window.location.hash = ''
+app.route(route)
+
 setTimeout(function () {
   app.scales.build()
 }, 500)
 
-},{"./app.js":1,"./tags/browser.tag":6,"./tags/roots.tag":7,"./tags/scale.tag":8,"./tags/search.tag":9,"riot":17}],3:[function(require,module,exports){
-var Note = require('note-pitch')
+},{"./app.js":1,"./tags/browser.tag":6,"./tags/roots.tag":7,"./tags/scale.tag":8,"./tags/search.tag":9,"riot":15}],3:[function(require,module,exports){
+var parse = require('note-parser')
 var VexFlow = Vex.Flow
 
 module.exports = function (canvas, width, height, notes) {
@@ -82,7 +86,7 @@ module.exports = function (canvas, width, height, notes) {
   stave.addClef('treble').setContext(ctx).draw()
 
   var tickables = notes.map(function (name) {
-    var note = Note.parse(name)
+    var note = parse(name)
     var staveNote = new VexFlow.StaveNote({ keys: [note.pc + note.acc + '/' + note.oct], duration: 'q' })
     if (note.acc) {
       staveNote.addAccidental(0, new VexFlow.Accidental(note.acc))
@@ -110,7 +114,7 @@ module.exports = function (canvas, width, height, notes) {
   voice.draw(ctx, stave)
 }
 
-},{"note-pitch":14}],4:[function(require,module,exports){
+},{"note-parser":14}],4:[function(require,module,exports){
 var riot = require('riot')
 var Scale = require('music-scale/all')
 
@@ -126,9 +130,10 @@ module.exports = function (app) {
     var scale = /^\d{4}$/.test(decimal) ? Scale.get(+decimal) : null
     if (scale) {
       if (!/^\s*$/.test(name)) {
-        app.select(scale.name() || scale.decimal)
+        name = (name in scale.names()) ? name : scale.name()
+        app.select(name || scale.decimal)
       } else {
-        route(scale.decimal, scale.name() || scale.binary)
+        route(scale.decimal, scale.name() || scale.binary)
       }
     } else {
       var clean = decodeURIComponent(name)
@@ -140,9 +145,9 @@ module.exports = function (app) {
   return route
 }
 
-},{"music-scale/all":12,"riot":17}],5:[function(require,module,exports){
+},{"music-scale/all":12,"riot":15}],5:[function(require,module,exports){
 var Scale = require('music-scale/all')
-var Chromatic = require('../chromatic.js')
+var Chromatic = require('chromatic')
 
 var types = ['one note', 'interval', 'triad', 'cuatriad', 'pentatonic',
 'hexatonic', 'heptatonic', 'octatonic', '9 notes', '10 notes', '11 notes', '12 notes']
@@ -220,7 +225,7 @@ module.exports = {
   }
 }
 
-},{"../chromatic.js":10,"music-scale/all":12}],6:[function(require,module,exports){
+},{"chromatic":10,"music-scale/all":12}],6:[function(require,module,exports){
 var riot = require('riot');
 module.exports = 
 riot.tag('browser', '<div class="app"> <div class="search"> <search app="{ opts.app }"></search> </div> <div class="scale"> <scale app="{ opts.app }"></scale> </div> </div>', 'browser , [riot-tag="browser"] { font-family: \'myriad pro\', sans-serif; } browser .app a, [riot-tag="browser"] .app a{ color: black; } browser .app, [riot-tag="browser"] .app{ width: 960px; margin: 40px auto; overflow: hidden; } browser .search, [riot-tag="browser"] .search{ width: 33%; float: left; } browser .scale, [riot-tag="browser"] .scale{ margin-left: 33%; }', function(opts) {
@@ -228,7 +233,7 @@ riot.tag('browser', '<div class="app"> <div class="search"> <search app="{ opts.
 
 });
 
-},{"riot":17}],7:[function(require,module,exports){
+},{"riot":15}],7:[function(require,module,exports){
 var riot = require('riot');
 module.exports = riot.tag('roots', '<div class="roots"> <a each="{ roots }" class="{ root: true, selected: selected }" href="#" onclick="{ parent.selected }"> { name } </a> </div>', 'roots .roots, [riot-tag="roots"] .roots{ width: 100%; overflow: hidden; } roots .roots a, [riot-tag="roots"] .roots a{ display: block; float: left; text-decoration: none; padding: 0.2em 0.5em 0 0.5em; border: 1px solid black; margin-right: 0.2em; } roots .roots a.selected, [riot-tag="roots"] .roots a.selected{ background-color: yellow; }', function(opts) {
     var self = this
@@ -246,7 +251,7 @@ module.exports = riot.tag('roots', '<div class="roots"> <a each="{ roots }" clas
   
 });
 
-},{"riot":17}],8:[function(require,module,exports){
+},{"riot":15}],8:[function(require,module,exports){
 var riot = require('riot');
 module.exports = riot.tag('scale', '<div if="{ scale }" class="details"> <roots app="{ opts.app }" root="{ root }"></roots> <h2>Scale: { state.root } { scale.name } <small if="{ scale.altNames }">({ scale.altNames })</small> </h2> <h4>[{ scale.decimal }] { scale.binary } { scale.type }</h4> <h3>Notes</h3> <div class="notes"> <canvas id="score0" width="500" height="100"></canvas>_ <canvas id="score1" width="500" height="100"></canvas>_ </div> <h3>Modes</h3> <div each ="{ scale.modes }" class="{ mode: true, can: cannonical }"> <a href="#{ decimal }/{ name }"> { parent.state.root } { name } </a> <div each="{ binary }" class="{ digit: true, one: one, zero: !one, alt: alt }"> { digit } </div> </div> </div>', 'scale .mode, [riot-tag="scale"] .mode{ width: 100%; overflow: hidden; padding: 0.2em 0; height: 2em; } scale .mode a, [riot-tag="scale"] .mode a{ float: left; display: block; width: 12em; } scale .mode div, [riot-tag="scale"] .mode div{ float: left; overflow: hidden; text-indent: -100px; height: 1em; width: 1em; margin: 0.5em 0.1em 0.1em 0; border-radius: 1em; border: 1px solid white; } scale .mode.can, [riot-tag="scale"] .mode.can{ font-weight: bold; } scale .mode .zero, [riot-tag="scale"] .mode .zero{ background-color: #DDD; } scale .mode .alt, [riot-tag="scale"] .mode .alt{ margin-top: 0.5em; width: 1em; } scale .mode .one, [riot-tag="scale"] .mode .one{ background-color: #666; } scale .mode .one.alt, [riot-tag="scale"] .mode .one.alt{ background-color: #333; }', function(opts) {
     var self = this
@@ -275,7 +280,7 @@ module.exports = riot.tag('scale', '<div if="{ scale }" class="details"> <roots 
   
 });
 
-},{"riot":17}],9:[function(require,module,exports){
+},{"riot":15}],9:[function(require,module,exports){
 var riot = require('riot');
 module.exports = riot.tag('search', '<h4>Search scale</h4> <label>You can search by scale name, <br>decimal or equivalent binary</label> <input name="searchPattern" onkeyup="{ search }"> <div class="names"> <label>Showing { results.length } of 2048</label> <a each="{ name in results }" data-name="{ name }" onclick="{ parent.select }" href="#"> { name } </a>&nbsp; </div>', 'search input[name=\'searchPattern\'], [riot-tag="search"] input[name=\'searchPattern\']{ font-size: 1em; } search label, [riot-tag="search"] label{ display: block; font-size: 0.8em; margin: 0.5em 0 1em 0; } search .names a, [riot-tag="search"] .names a{ display: block; }', function(opts) {
     var app = this.opts.app
@@ -297,14 +302,15 @@ module.exports = riot.tag('search', '<h4>Search scale</h4> <label>You can search
   
 });
 
-},{"riot":17}],10:[function(require,module,exports){
+},{"riot":15}],10:[function(require,module,exports){
 'use strict'
 
 function Chromatic (root, octave, length, descending) {
   if (!root) throw Error('Give me a root, please')
-  root = root.charAt(0).toUpperCase() + root.slice(1).toLowerCase()
   length = length || 12
+  root = root.charAt(0).toUpperCase() + root.slice(1).toLowerCase()
   descending = descending === true ? 1 : 0
+
   return Chromatic.SCALES.reduce(function (all, notes) {
     var scale = find(root, notes)
     if (scale) all.push(octavize(forceLength(reverse(scale, descending), length), octave))
@@ -318,16 +324,6 @@ Chromatic.SCALES = [
   'C C# D D# E F F# G G# A A# B'.split(' '),
   'C# C## D# D## E# F# F## G# G## A# A## B#'.split(' ')
 ]
-
-Chromatic.NAMES = (function () {
-  var names = []
-  Chromatic.SCALES.forEach(function (scale) {
-    scale.forEach(function (note) {
-      if (names.indexOf(note) === -1) names.push(note)
-    })
-  })
-  return names
-})().sort()
 
 function find (root, notes) {
   var index = notes.indexOf(root)
@@ -694,202 +690,6 @@ if (typeof window !== 'undefined') window.Scale = Scale
 },{"method-memoize":11}],14:[function(require,module,exports){
 'use strict'
 
-var Interval = require('interval-parser')
-var parse = require('note-parser')
-
-var Note = {}
-
-Note.parse = function (note) {
-  return parse.apply(null, arguments)
-}
-
-Note.semitones = function (a, b) {
-  return parse(b).midi - parse(a).midi
-}
-
-/*
- * pitch.distance
- *
- * return intervals between notes
- */
-Note.distance = function (root, notes) {
-  root = parse(root)
-  if (arguments.length === 1) {
-    return function (note) {
-      return interval(root, note)
-    }
-  } else if (Array.isArray(notes)) {
-    return notes.map(function (i) {
-      return interval(root, i)
-    })
-  } else {
-    return interval(root, notes)
-  }
-}
-
-Note.transpose = function (note, interval) {
-  if (arguments.length === 1) {
-    interval = note
-    return function (note) {
-      return transpose(note, interval)
-    }
-  } else if (Array.isArray(interval)) {
-    return interval.map(function (i) {
-      return transpose(note, i)
-    })
-  } else {
-    return transpose(note, interval)
-  }
-}
-
-var CHANGE = {
-  'minor': ['d', 'm', 'M', 'A'],
-  'perfect': ['d', 'P', 'A']
-}
-function interval (a, b) {
-  a = parse(a)
-  b = parse(b)
-  var semitones = b.midi - a.midi
-  var dir = semitones < 0 ? -1 : 1
-  var pitchDistance = pitchDist(a, b) + dir
-  if (dir < 0) pitchDistance -= 7
-
-  var i = Interval('d' + pitchDistance)
-  var octaves = semitones / 12 | 0
-  if (octaves === -1) octaves = 0
-  var difference = dir * (semitones - i.semitones - 12 * octaves)
-  var dest = CHANGE[i.type][difference] + (pitchDistance + 7 * octaves)
-  return dest
-}
-
-function pitchDist (a, b) {
-  var first = PITCH_CLASSES.indexOf(parse(a).pc)
-  var second = PITCH_CLASSES.indexOf(parse(b).pc, first)
-  return second - first
-}
-
-var PITCH_CLASSES = 'cdefgabcdefgab'
-var ACCIDENTALS = ['bb', 'b', '', '#', '##']
-function transpose (note, interval) {
-  note = parse(note, null, null)
-  if (!note) return null
-  interval = Interval(interval)
-  var pitchIndex = PITCH_CLASSES.indexOf(note.pc)
-  var pitchDest = pitchIndex + interval.simple - 1
-  var pc = PITCH_CLASSES[pitchDest]
-  var octOffset = interval.octaves
-  if (pitchDest > 6) octOffset++
-  var dest = parse(pc + (note.oct + octOffset))
-  var difference = interval.semitones - (dest.midi - note.midi)
-  var reduced = difference % 12
-  var octaves = (difference - reduced) / 12
-  var accidentals = ACCIDENTALS[reduced + 2]
-  return dest.pc + accidentals + (dest.oct + octaves)
-}
-
-module.exports = Note
-
-},{"interval-parser":15,"note-parser":16}],15:[function(require,module,exports){
-'use strict';
-/*
- * parseInterval
- *
- * Parse a interval and returns an object with:
- * - name
- * - quality
- * - direction
- * - number
- * - simple
- * - type
- * - semitones
- * - octaves
- */
-var INTERVAL = /^([dmPMA])(-{0,1})(\d{1,2})$/;
-function parseInterval(interval) {
-  var obj = null;
-  if(isIntervalObj(interval)) {
-    obj = prepare(interval);
-  } else if (typeof(interval) == 'string') {
-    var m = INTERVAL.exec(interval.trim());
-    if(m) {
-      obj = prepare({name: interval, quality: m[1],
-        direction: m[2], number: m[3]});
-    }
-  }
-  return validate(interval, obj);
-}
-
-function validate(name, obj) {
-  if(obj == null) {
-    throw Error("Interval not valid: " + name);
-  }
-  return obj;
-}
-
-
-function isIntervalObj(interval) {
-  return typeof(interval.name) !== 'undefined'
-    && typeof(interval.quality) !== 'undefined'
-    && typeof(interval.direction) !== 'undefined'
-    && typeof(interval.number) !== 'undefined';
-}
-
-function prepare(i) {
-  i.number = +i.number;
-  i.direction = i.direction === '' ? 1 : -1;
-  i.octaves = i.octaves || octaves(i);
-  i.simple = i.simple || simpleNumber(i);
-  i.type = i.type || type(i);
-  i.semitones = i.semitones || semitones(i);
-  if(/A1|d1|d2/.test(i.name)) i.direction = -1;
-  return i;
-}
-
-function simpleNumber(i) {
-  if(i.number > 8) {
-    var num = (i.number - 1) % 7 + 1;
-    if (num == 1) num = 8;
-    return num;
-  } else {
-    return i.number;
-  }
-}
-
-function octaves(i) {
-  if(i.number === 1) return 0;
-  else return Math.floor((i.number - 2) / 7);
-}
-
- var SEMITONES = {"d1": -1, "d2": 0, "d3": 2, "d4": 4, "d5": 6,
-   "d6": 7, "d7": 9, "d8": 11}
- var EXTRA = {
-   "minor": {"d": 0, "m": 1, "M": 2, "A": 3 },
-   "perfect": {"d": 0, "P": 1, "A": 2 }
- };
-
-function semitones(i) {
-  var semi = SEMITONES["d" + i.simple];
-  var extra = EXTRA[i.type][i.quality];
-  var oct = i.octaves * 12;
-  return i.direction * (semi + extra + oct);
-}
-
-
-function type(i) {
-  var num = i.simple;
-  if(num === 1 || num === 4 || num === 5 || num === 8) {
-    return "perfect";
-  } else {
-    return "minor";
-  }
-}
-
-if (typeof module === "object" && module.exports) module.exports = parseInterval;
-else i.parseInterval = parseInterval;
-
-},{}],16:[function(require,module,exports){
-'use strict'
-
 var NOTE = /^([a-gA-G])(#{0,2}|b{0,2})(-?[0-9]{1}|[+]{0,2}|[-]{0,2})$/
 /*
  * parseNote
@@ -926,6 +726,7 @@ var parse = function (note, defaultOctave, defaultValue) {
   }
 
   if (parsed) {
+    parsed.name = parsed.name || '' + parsed.pc + parsed.acc + parsed.oct
     parsed.midi = parsed.midi || toMidi(parsed)
     parsed.freq = parsed.freq || midiToFrequency(parsed.midi)
     return parsed
@@ -934,10 +735,6 @@ var parse = function (note, defaultOctave, defaultValue) {
   } else {
     throw Error('Invalid note format: ' + note)
   }
-}
-
-parse.toString = function (obj) {
-  return obj.pc + obj.acc + obj.oct
 }
 
 var SEMITONES = {c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }
@@ -952,7 +749,7 @@ function midiToFrequency (note) {
 
 module.exports = parse
 
-},{}],17:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* Riot v2.2.1, @license MIT, (c) 2015 Muut Inc. + contributors */
 
 ;(function(window) {
