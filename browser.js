@@ -15,6 +15,7 @@ function App (state) {
   this.scales = require('./scales.js')
   this.render = require('./render.js')
   this.route = require('./router.js')(this)
+  this.play = require('./player.js')
 }
 
 App.prototype.getRoots = function () {
@@ -46,7 +47,7 @@ App.prototype.getResults = function () {
   return this.scales.search(this.state.pattern)
 }
 
-},{"./render.js":3,"./router.js":4,"./scales.js":5,"riot":15}],2:[function(require,module,exports){
+},{"./player.js":3,"./render.js":4,"./router.js":5,"./scales.js":6,"riot":16}],2:[function(require,module,exports){
 var riot = require('riot')
 var App = require('./app.js')
 
@@ -72,7 +73,18 @@ setTimeout(function () {
   app.scales.build()
 }, 500)
 
-},{"./app.js":1,"./tags/browser.tag":6,"./tags/roots.tag":7,"./tags/scale.tag":8,"./tags/search.tag":9,"riot":15}],3:[function(require,module,exports){
+},{"./app.js":1,"./tags/browser.tag":7,"./tags/roots.tag":8,"./tags/scale.tag":9,"./tags/search.tag":10,"riot":16}],3:[function(require,module,exports){
+'use strict'
+
+var ctx = new window.AudioContext()
+var soundfont = require('soundfont-player')(ctx)
+
+var instrument = soundfont.instrument('acoustic_grand_piano')
+
+module.exports = function (notes) {
+}
+
+},{"soundfont-player":17}],4:[function(require,module,exports){
 var parse = require('note-parser')
 var VexFlow = Vex.Flow
 
@@ -114,7 +126,7 @@ module.exports = function (canvas, width, height, notes) {
   voice.draw(ctx, stave)
 }
 
-},{"note-parser":14}],4:[function(require,module,exports){
+},{"note-parser":15}],5:[function(require,module,exports){
 var riot = require('riot')
 var Scale = require('music-scale/all')
 
@@ -145,7 +157,7 @@ module.exports = function (app) {
   return route
 }
 
-},{"music-scale/all":12,"riot":15}],5:[function(require,module,exports){
+},{"music-scale/all":13,"riot":16}],6:[function(require,module,exports){
 var Scale = require('music-scale/all')
 var Chromatic = require('chromatic')
 
@@ -225,7 +237,7 @@ module.exports = {
   }
 }
 
-},{"chromatic":10,"music-scale/all":12}],6:[function(require,module,exports){
+},{"chromatic":11,"music-scale/all":13}],7:[function(require,module,exports){
 var riot = require('riot');
 module.exports = 
 riot.tag('browser', '<div class="app"> <div class="search"> <search app="{ opts.app }"></search> </div> <div class="scale"> <scale app="{ opts.app }"></scale> </div> </div>', 'browser , [riot-tag="browser"] { font-family: \'myriad pro\', sans-serif; } browser .app a, [riot-tag="browser"] .app a{ color: black; } browser .app, [riot-tag="browser"] .app{ width: 960px; margin: 40px auto; overflow: hidden; } browser .search, [riot-tag="browser"] .search{ width: 33%; float: left; } browser .scale, [riot-tag="browser"] .scale{ margin-left: 33%; }', function(opts) {
@@ -233,7 +245,7 @@ riot.tag('browser', '<div class="app"> <div class="search"> <search app="{ opts.
 
 });
 
-},{"riot":15}],7:[function(require,module,exports){
+},{"riot":16}],8:[function(require,module,exports){
 var riot = require('riot');
 module.exports = riot.tag('roots', '<div class="roots"> <a each="{ roots }" class="{ root: true, selected: selected }" href="#" onclick="{ parent.selected }"> { name } </a> </div>', 'roots .roots, [riot-tag="roots"] .roots{ width: 100%; overflow: hidden; } roots .roots a, [riot-tag="roots"] .roots a{ display: block; float: left; text-decoration: none; padding: 0.2em 0.5em 0 0.5em; border: 1px solid black; margin-right: 0.2em; } roots .roots a.selected, [riot-tag="roots"] .roots a.selected{ background-color: yellow; }', function(opts) {
     var self = this
@@ -251,9 +263,9 @@ module.exports = riot.tag('roots', '<div class="roots"> <a each="{ roots }" clas
   
 });
 
-},{"riot":15}],8:[function(require,module,exports){
+},{"riot":16}],9:[function(require,module,exports){
 var riot = require('riot');
-module.exports = riot.tag('scale', '<div if="{ scale }" class="details"> <roots app="{ opts.app }" root="{ root }"></roots> <h2>Scale: { state.root } { scale.name } <small if="{ scale.altNames }">({ scale.altNames })</small> </h2> <h4>[{ scale.decimal }] { scale.binary } { scale.type }</h4> <h3>Notes</h3> <div class="notes"> <canvas id="score0" width="500" height="100"></canvas>_ <canvas id="score1" width="500" height="100"></canvas>_ </div> <h3>Modes</h3> <div each ="{ scale.modes }" class="{ mode: true, can: cannonical }"> <a href="#{ decimal }/{ name }"> { parent.state.root } { name } </a> <div each="{ binary }" class="{ digit: true, one: one, zero: !one, alt: alt }"> { digit } </div> </div> </div>', 'scale .mode, [riot-tag="scale"] .mode{ width: 100%; overflow: hidden; padding: 0.2em 0; height: 2em; } scale .mode a, [riot-tag="scale"] .mode a{ float: left; display: block; width: 12em; } scale .mode div, [riot-tag="scale"] .mode div{ float: left; overflow: hidden; text-indent: -100px; height: 1em; width: 1em; margin: 0.5em 0.1em 0.1em 0; border-radius: 1em; border: 1px solid white; } scale .mode.can, [riot-tag="scale"] .mode.can{ font-weight: bold; } scale .mode .zero, [riot-tag="scale"] .mode .zero{ background-color: #DDD; } scale .mode .alt, [riot-tag="scale"] .mode .alt{ margin-top: 0.5em; width: 1em; } scale .mode .one, [riot-tag="scale"] .mode .one{ background-color: #666; } scale .mode .one.alt, [riot-tag="scale"] .mode .one.alt{ background-color: #333; }', function(opts) {
+module.exports = riot.tag('scale', '<div if="{ scale }" class="details"> <roots app="{ opts.app }" root="{ root }"></roots> <h2>Scale: { state.root } { scale.name } <small if="{ scale.altNames }">({ scale.altNames })</small> </h2> <h4>[{ scale.decimal }] { scale.binary } { scale.type }</h4> <h3>Notes</h3> <div class="notes"> <canvas id="score0" width="500" height="100"></canvas>_ <canvas id="score1" width="500" height="100"></canvas>_ </div> <a href="#" onclick="{ play }">Play</a> <h3>Modes</h3> <div each ="{ scale.modes }" class="{ mode: true, can: cannonical }"> <a href="#{ decimal }/{ name }"> { parent.state.root } { name } </a> <div each="{ binary }" class="{ digit: true, one: one, zero: !one, alt: alt }"> { digit } </div> </div> </div>', 'scale .mode, [riot-tag="scale"] .mode{ width: 100%; overflow: hidden; padding: 0.2em 0; height: 2em; } scale .mode a, [riot-tag="scale"] .mode a{ float: left; display: block; width: 12em; } scale .mode div, [riot-tag="scale"] .mode div{ float: left; overflow: hidden; text-indent: -100px; height: 1em; width: 1em; margin: 0.5em 0.1em 0.1em 0; border-radius: 1em; border: 1px solid white; } scale .mode.can, [riot-tag="scale"] .mode.can{ font-weight: bold; } scale .mode .zero, [riot-tag="scale"] .mode .zero{ background-color: #DDD; } scale .mode .alt, [riot-tag="scale"] .mode .alt{ margin-top: 0.5em; width: 1em; } scale .mode .one, [riot-tag="scale"] .mode .one{ background-color: #666; } scale .mode .one.alt, [riot-tag="scale"] .mode .one.alt{ background-color: #333; }', function(opts) {
     var self = this
     var app = this.opts.app
     this.state = app.state
@@ -266,6 +278,12 @@ module.exports = riot.tag('scale', '<div if="{ scale }" class="details"> <roots 
       app.render(canvas[0], 400, 100, notes[0])
       if (notes.length > 1) app.render(canvas[1], 400, 100, notes[1])
     })
+
+    this.play = function(e) {
+      var notes = app.getSelected().notes[0]
+      console.log(notes)
+      app.play(notes)
+    }.bind(this);
 
     this.select = function(e) {
       app.select(e.target.getAttribute('data-name'))
@@ -280,7 +298,7 @@ module.exports = riot.tag('scale', '<div if="{ scale }" class="details"> <roots 
   
 });
 
-},{"riot":15}],9:[function(require,module,exports){
+},{"riot":16}],10:[function(require,module,exports){
 var riot = require('riot');
 module.exports = riot.tag('search', '<h4>Search scale</h4> <label>You can search by scale name, <br>decimal or equivalent binary</label> <input name="searchPattern" onkeyup="{ search }"> <div class="names"> <label>Showing { results.length } of 2048</label> <a each="{ name in results }" data-name="{ name }" onclick="{ parent.select }" href="#"> { name } </a>&nbsp; </div>', 'search input[name=\'searchPattern\'], [riot-tag="search"] input[name=\'searchPattern\']{ font-size: 1em; } search label, [riot-tag="search"] label{ display: block; font-size: 0.8em; margin: 0.5em 0 1em 0; } search .names a, [riot-tag="search"] .names a{ display: block; }', function(opts) {
     var app = this.opts.app
@@ -302,7 +320,7 @@ module.exports = riot.tag('search', '<h4>Search scale</h4> <label>You can search
   
 });
 
-},{"riot":15}],10:[function(require,module,exports){
+},{"riot":16}],11:[function(require,module,exports){
 'use strict'
 
 function Chromatic (root, octave, length, descending) {
@@ -358,7 +376,7 @@ function rotate (arr, positions) {
 
 module.exports = Chromatic
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = function(method) {
   var memoized = function() {
     var cache = this['__cache' + memoized.cacheId] ||
@@ -373,7 +391,7 @@ module.exports = function(method) {
   return memoized;
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict'
 var Scale = require('./')
 Scale.Names({
@@ -468,7 +486,7 @@ Scale.Names({
 if (typeof module === 'object' && module.exports) module.exports = Scale
 if (typeof window !== 'undefined') window.Scale = Scale
 
-},{"./":13}],13:[function(require,module,exports){
+},{"./":14}],14:[function(require,module,exports){
 'use strict'
 
 var memoize = require('method-memoize')
@@ -687,7 +705,7 @@ function lengthOf (o) { return o.length }
 if (typeof module === 'object' && module.exports) module.exports = Scale
 if (typeof window !== 'undefined') window.Scale = Scale
 
-},{"method-memoize":11}],14:[function(require,module,exports){
+},{"method-memoize":12}],15:[function(require,module,exports){
 'use strict'
 
 var NOTE = /^([a-gA-G])(#{0,2}|b{0,2})(-?[0-9]{1}|[+]{0,2}|[-]{0,2})$/
@@ -749,7 +767,7 @@ function midiToFrequency (note) {
 
 module.exports = parse
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* Riot v2.2.1, @license MIT, (c) 2015 Muut Inc. + contributors */
 
 ;(function(window) {
@@ -2070,5 +2088,319 @@ riot.mountTo = riot.mount
     window.riot = riot
 
 })(typeof window != 'undefined' ? window : undefined);
+
+},{}],17:[function(require,module,exports){
+'use strict'
+
+var base64DecodeToArray = require('./lib/b64decode.js')
+var parseNote = require('note-parser')
+
+function Soundfont (audioContext) {
+  if (!(this instanceof Soundfont)) return new Soundfont(audioContext)
+  this.ctx = audioContext
+  this.instruments = {}
+  this.promises = []
+}
+
+Soundfont.prototype.instrument = function (name) {
+  if (!name) return createDefaultInstrument(this.ctx, 'default')
+  var inst = this.instruments[name]
+  if (!inst) {
+    var ctx = this.ctx
+    inst = createDefaultInstrument(ctx, name)
+    var promise = Soundfont.loadBuffers(ctx, name).then(function (buffers) {
+      var realInst = createInstrument(ctx, name, buffers)
+      inst.play = realInst.play
+    })
+    this.promises.push(promise)
+    inst.onready = function (callback) {
+      return promise.then(callback)
+    }
+    this.instruments[name] = inst
+  }
+  return inst
+}
+
+Soundfont.prototype.onready = function (callback) {
+  Promise.all(this.promises).then(callback)
+}
+
+Soundfont.noteToMidi = function (note) {
+  if (!note) return null
+  if (note.midi) return note.midi
+  if (!isNaN(note)) return note
+  else return parseNote(note).midi
+}
+
+/*
+ * Soundfont.nameToUrl
+ * Given an instrument name returns a URL to its Soundfont js file
+ *
+ * @param {String} name - instrument name
+ * @returns {String} the Soundfont data url
+ */
+Soundfont.nameToUrl = function (name) {
+  return 'https://cdn.rawgit.com/gleitz/midi-js-Soundfonts/master/FluidR3_GM/' + name + '-ogg.js'
+}
+
+/*
+ * SoundFont.getScript
+ *
+ * Given a script URL returns a Promise with the script contents as text
+ * @param {String} url - the URL
+ */
+Soundfont.loadData = function (url) {
+  return new Promise(function (done, reject) {
+    var req = new window.XMLHttpRequest()
+    req.open('GET', url)
+
+    req.onload = function () {
+      if (req.status === 200) {
+        done(req.response)
+      } else {
+        reject(Error(req.statusText))
+      }
+    }
+    req.onerror = function () {
+      reject(Error('Network Error'))
+    }
+    req.send()
+  })
+}
+
+/*
+ *  Parse the SoundFont data and return a JSCON object
+ *  (SoundFont data are .js files wrapping json data)
+ *
+ * @param {String} data - the SoundFont js file content
+ * @returns {JSON} the parsed data as JSON object
+ */
+Soundfont.dataToJson = function (data) {
+  var begin = data.indexOf('MIDI.Soundfont.')
+  begin = data.indexOf('=', begin) + 2
+  var end = data.lastIndexOf(',')
+  return JSON.parse(data.slice(begin, end) + '}')
+}
+
+/*
+ * loadBuffers
+ *
+ * Given a Web Audio context and a instrument name
+ * load the instrument data and return a hash of audio buffers
+ *
+ * @param {Object} ctx - A Web Audio context
+ * @param {String} name - the sounfont instrument name
+ */
+Soundfont.loadBuffers = function (ctx, name) {
+  return Promise.resolve(name)
+    .then(Soundfont.nameToUrl)
+    .then(Soundfont.loadData)
+    .then(Soundfont.dataToJson)
+    .then(function (jsonData) {
+      return createBank(ctx, name, jsonData)
+    })
+    .then(decodeBank)
+    .then(function (bank) {
+      return bank.buffers
+    })
+}
+
+/*
+ * @param {Object} ctx - Web Audio context
+ * @param {String} name - The bank name
+ * @param {Object} data - The Soundfont instrument data as JSON
+ */
+function createBank (ctx, name, data) {
+  var bank = { ctx: ctx, name: name, data: data }
+  bank.buffers = {}
+
+  return bank
+}
+
+/*
+ * INTENAL: decodeBank
+ * Given an instrument, returns a Promise that resolves when
+ * all the notes from de instrument are decoded
+ */
+function decodeBank (bank) {
+  var promises = Object.keys(bank.data).map(function (note) {
+    return decodeNote(bank.ctx, bank.data[note])
+      .then(function (buffer) {
+        note = parseNote(note)
+        bank.buffers[note.midi] = buffer
+      })
+  })
+
+  return Promise.all(promises).then(function () {
+    return bank
+  })
+}
+
+/*
+ * Given a WAA context and a base64 encoded buffer data returns
+ * a Promise that resolves when the buffer is decoded
+ */
+function decodeNote (context, data) {
+  return new Promise(function (done, reject) {
+    var decodedData = base64DecodeToArray(data.split(',')[1]).buffer
+    context.decodeAudioData(decodedData, function (buffer) {
+      done(buffer)
+    }, function (e) {
+      reject('DecodeAudioData error', e)
+    })
+  })
+}
+
+/*
+ * createDefaultInstrument
+ */
+function createDefaultInstrument (context, name) {
+  var instrument = {
+    name: name,
+    play: function (note, time, duration, options) {
+      note = parseNote(note)
+      options = options || {}
+      var gain = options.gain || 0.2
+      var vcoType = options.vcoType || 'sine'
+
+      var vco = context.createOscillator()
+      vco.type = vcoType
+      vco.frequency.value = note.freq
+
+      /* VCA */
+      var vca = context.createGain()
+      vca.gain.value = gain
+
+      /* Connections */
+      vco.connect(vca)
+      vca.connect(context.destination)
+
+      vco.start(time)
+      vco.stop(time + duration)
+      return vco
+    }
+  }
+  return instrument
+}
+
+function createInstrument (audioContext, name, buffers) {
+  var instrument = {
+    name: name,
+    play: function (note, time, duration) {
+      var midi = Soundfont.noteToMidi(note)
+      var buffer = buffers[midi]
+      if (!buffer) {
+        console.log('WARNING: Note buffer not found: ', note)
+        return
+      }
+      var source = audioContext.createBufferSource()
+      source.buffer = buffer
+      source.connect(audioContext.destination)
+      source.start(time)
+      if (duration) source.stop(time + duration)
+      return source
+    }
+  }
+  return instrument
+}
+
+if (typeof module === 'object' && module.exports) module.exports = Soundfont
+if (typeof window !== 'undefined') window.Soundfont = Soundfont
+
+},{"./lib/b64decode.js":18,"note-parser":19}],18:[function(require,module,exports){
+'use strict'
+
+function b64ToUint6 (nChr) {
+  return nChr > 64 && nChr < 91 ?
+    nChr - 65
+    : nChr > 96 && nChr < 123 ?
+      nChr - 71
+      : nChr > 47 && nChr < 58 ?
+        nChr + 4
+        : nChr === 43 ?
+          62
+          : nChr === 47 ?
+            63
+            :
+            0
+
+}
+
+// Decode Base64 to Uint8Array
+// ---------------------------
+function base64DecodeToArray (sBase64, nBlocksSize) {
+  var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, '')
+  var nInLen = sB64Enc.length
+  var nOutLen = nBlocksSize ?
+    Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize :
+    nInLen * 3 + 1 >> 2
+  var taBytes = new Uint8Array(nOutLen)
+
+  for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+    nMod4 = nInIdx & 3
+    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4
+    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+      for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+        taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255
+      }
+      nUint24 = 0
+    }
+  }
+  return taBytes
+}
+
+module.exports = base64DecodeToArray
+
+},{}],19:[function(require,module,exports){
+'use strict';
+
+var NOTE = /^([a-gA-G])(#{0,2}|b{0,2})(-?\d{0,1})$/
+/*
+ * parseNote
+ *
+ * @param {String} note - the note string to be parsed
+ * @return {Object} a object with the following attributes:
+ * - pc: pitchClass, the letter of the note, ALWAYS in lower case
+ * - acc: the accidentals (or '' if no accidentals)
+ * - oct: the octave as integer. By default is 4
+ */
+var parse = function(note, defaultOctave, defaultValue) {
+  var parsed, match;
+  if(typeof(note) === 'string' && (match = NOTE.exec(note))) {
+    var octave = match[3] !== '' ? +match[3] : (defaultOctave || 4);
+    parsed = { pc: match[1].toLowerCase(),
+      acc: match[2], oct: octave };
+  } else if(typeof(note.pc) !== 'undefined'
+    && typeof(note.acc) !== 'undefined'
+    && typeof(note.oct) !== 'undefined') {
+    parsed = note;
+  }
+
+  if (parsed) {
+    parsed.midi = parsed.midi || toMidi(parsed);
+    parsed.freq = parsed.freq || midiToFrequency(parsed.midi);
+    return parsed;
+  } else if (typeof(defaultValue) !== 'undefined') {
+    return defaultValue;
+  } else {
+    throw Error("Invalid note format: " + note);
+  }
+}
+
+parse.toString = function(obj) {
+  return obj.pc + obj.acc + obj.oct;
+}
+
+var SEMITONES = {c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }
+function toMidi(note) {
+  var alter = note.acc.length;
+  if(note.acc[0] === 'b') alter = -1 * alter;
+  return SEMITONES[note.pc] + alter + 12 * (note.oct + 1);
+}
+function midiToFrequency (note) {
+    return Math.pow(2, (note-69)/12)*440;
+}
+
+module.exports = parse;
 
 },{}]},{},[2]);
